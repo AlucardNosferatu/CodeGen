@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace EAM
 {
@@ -14,6 +6,14 @@ namespace EAM
     {
         public Form1()
         {
+            Monster M = new Monster();
+            M.namespace_as = "BarneyCustom";
+            M.ally = true;
+            M.mdl_path = "models/monsters/motherfucker.mdl";
+            M.sound_paths.Add("sounds/fucking.wav");
+            M.sound_paths.Add("sounds/sucking.wav");
+            M.sound_paths.Add("sounds/cumming.wav");
+            string PrecStr = StrConverter.GetPrecacheMethodStr(M);
             InitializeComponent();
         }
     }
