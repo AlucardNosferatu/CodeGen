@@ -1,2 +1,2 @@
-# CodeGen
-CodeGen using Templates
+# VT_CODE_GEN
+USE THIS TO GEN VERILOG CODE FOR VT PROGRAM
