@@ -1,0 +1,30 @@
+{
+  "wanNum": "1",
+  "wan": [
+    {
+      "macaddr": "#VAR",
+      "proto": "dhcp",
+      "mtu": "1500"
+    }
+  ],
+  "lanNum": "1",
+  "lan": [
+    {
+      "proto": "static",
+      "ipaddr": "#VAR",
+      "netmask": "#VAR",
+      "vlanid": "233",
+      "ignore": "#VAR",
+      "leasetime": "#VAR",
+      "limit": "#VAR",
+      "conflict": "#VAR",
+      "macaddr": "#VAR",
+      "ipstart": "#VAR",
+      "lastaddr": "#VAR"
+    }
+  ],
+  "version": "1.0.0",
+  "configTime": "#TS",
+  "currentTime": "#TS",
+  "configId": "#TS"
+}

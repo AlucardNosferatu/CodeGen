@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+
 namespace ACG
 {
     internal class CodeGen
@@ -36,13 +37,6 @@ namespace ACG
 
         public CodeGen()
         {
-            this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
-            this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
-            this.proxy_in_func_file = "frontpage";
-            this.proxy_url_prefix = "functions/v2/frontpage/";
-            this.simple_params.Add(value: "remark");
-            this.simple_params.Add(value: "staMac");
-            this.simple_params.Add(value: "projectId");
             if (!this.is_cmd)
             {
                 this.need_timestamp = false;
@@ -50,6 +44,16 @@ namespace ACG
                 this.has_end_morning = false;
                 this.get_cmd_result = false;
             }
+
+
+            this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
+            this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
+            this.proxy_in_func_file = "frontpage";
+            this.proxy_url_prefix = "functions/v2/frontpage/";
+            this.simple_params.Add(value: "remark");
+            this.simple_params.Add(value: "staMac");
+            this.simple_params.Add(value: "projectId");
+
             //this.simple_params.Add(value: "version");
             //this.simple_params.Add(value: "groupId");
             //this.simple_params.Add(value: "type");
