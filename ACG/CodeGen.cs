@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 namespace ACG
@@ -57,17 +58,26 @@ namespace ACG
             }
             return action_name;
         }
-        public CodeGen(String json_string)
+        public CodeGen(String json_string, Dictionary<String, String> string_dict, Dictionary<String, bool> bool_dict)
         {
-            this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
-            this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
-            this.proxy_in_func_file = "frontpage";
-            this.proxy_url_prefix = "functions/v2/frontpage/";
-            this.specified_action_name = "";
-            this.has_end_morning = true;
-            this.is_cmd = true;
-            this.cmd_string = "ac_config set -m timeReboot '{}'";
-            this.get_cmd_result = true;
+            //this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
+            //this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
+            //this.proxy_in_func_file = "frontpage";
+            //this.proxy_url_prefix = "functions/v2/frontpage/";
+            //this.specified_action_name = "";
+            //this.cmd_string = "ac_config set -m timeReboot '{}'";
+            //this.has_end_morning = true;
+            //this.is_cmd = true;
+            //this.get_cmd_result = true;
+            this.proxy_out_api_url = string_dict[key: "proxy_out_api_url"];
+            this.proxy_out_func_path = string_dict[key: "proxy_out_func_path"];
+            this.proxy_in_func_file = string_dict[key: "proxy_in_func_file"];
+            this.proxy_url_prefix = string_dict[key: "proxy_url_prefix"];
+            this.specified_action_name = string_dict[key: "specified_action_name"];
+            this.cmd_string = string_dict[key: "cmd_string"];
+            this.has_end_morning = bool_dict[key: "has_end_morning"];
+            this.is_cmd = bool_dict[key: "is_cmd"];
+            this.get_cmd_result = bool_dict[key: "get_cmd_result"];
             this.get_cmd_result = this.get_cmd_result && this.is_cmd;
             String p_dict_name = "";
             if (this.is_cmd)
@@ -90,12 +100,6 @@ namespace ACG
             this.json_writer = new JsonWriter(json_string: json_string, p_dict_name: p_dict_name, tt_names: this.tt_names, ts_name: this.timestamp_var);
             this.has_timetable = this.json_writer.has_timetable;
             this.has_timestamp = this.json_writer.has_timestamp;
-            this.py_params = new ArrayList();
-        }
-        public String ProxyOut_write()
-        {
-            StringWriter sw = new StringWriter();
-            sw.WriteLine("# 此标记表明该代码由TOOL生成");
             ArrayList input_params = (ArrayList)this.json_writer.params_list.Clone();
             if (this.is_cmd)
             {
@@ -109,7 +113,12 @@ namespace ACG
                 }
             }
             this.py_params = input_params;
-            String input_params_string = String.Join(", ", input_params.ToArray());
+        }
+        public String ProxyOut_write()
+        {
+            StringWriter sw = new StringWriter();
+            sw.WriteLine("# 此标记表明该代码由TOOL生成");
+            String input_params_string = String.Join(", ", this.py_params.ToArray());
             sw.WriteLine($"def {this.proxy_out_func_prefix}{this.action_name}({input_params_string}):");
             sw.WriteLine($"    api_name = \"{this.proxy_in_func_prefix}{this.action_name}\"");
             if (this.has_timestamp)
