@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 
@@ -44,8 +43,6 @@ namespace ACG
                 this.has_end_morning = false;
                 this.get_cmd_result = false;
             }
-
-
             this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
             this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
             this.proxy_in_func_file = "frontpage";
@@ -67,82 +64,19 @@ namespace ACG
             //this.fixed_params.Add(key: "type", value: "\"reboot\"");
             //this.fixed_params.Add(key: "tmngtName", value: "\"sys_reboot\"");
         }
-        public String ParseCamel(String camel_string)
-        {
-            String underscoreLowercase = Regex.Replace(camel_string, @"([A-Z])", "_$1").ToLower();
-            return underscoreLowercase;
-        }
-        private void ProcessActionParams(out string action_name, out ArrayList converted_simple_params)
-        {
-            if (this.specified_action_name.Length > 0)
-            {
-                action_name = this.specified_action_name;
-            }
-            else
-            {
-                if (this.is_cmd)
-                {
-                    String[] cmd_as_list = this.cmd_string.Replace(oldValue: " '{}'", "").Replace(oldValue: "-m ", "").Split(separator: ' ');
-                    action_name = cmd_as_list[cmd_as_list.Length - 2] + "_" + cmd_as_list[cmd_as_list.Length - 1];
-                }
-                else
-                {
-                    String[] proxy_out_api_url_splited = this.proxy_out_api_url.Split('/');
-                    action_name = proxy_out_api_url_splited[proxy_out_api_url_splited.Length - 1];
-                }
-                action_name = this.ParseCamel(camel_string: action_name);
-            }
-            //converted_simple_params包含time_dict对应的参数名、不包含时间戳
-            converted_simple_params = new ArrayList();
-            foreach (String param_key in this.simple_params)
-            {
-                converted_simple_params.Add(value: this.ParseCamel(camel_string: param_key));
-            }
-        }
-        private void FilterTrappedParams(ArrayList converted_simple_params)
-        {
-            if (this.has_time_dict)
-            {
-                converted_simple_params.Remove(obj: this.time_dict_key);
-                converted_simple_params.Add(value: this.time_dict_ed_key);
-                converted_simple_params.Add(value: this.time_dict_sn_key);
-                if (this.has_end_morning)
-                {
-                    converted_simple_params.Add(value: this.time_dict_em_key);
-                }
-            }
-            Array fp_keys = this.fixed_params.Keys.ToArray();
-            for (int index = 0; index < fp_keys.Length; index++)
-            {
-                String fp_key = (String)fp_keys.GetValue(index: index);
-                fp_key = this.ParseCamel(camel_string: fp_key);
-                converted_simple_params.Remove(obj: fp_key);
-            }
-            if (this.is_cmd)
-            {
-                if (!converted_simple_params.Contains(item: "project_id"))
-                {
-                    converted_simple_params.Add(value: "project_id");
-                }
-                if (!converted_simple_params.Contains(item: "sn"))
-                {
-                    converted_simple_params.Add(value: "sn");
-                }
-            }
 
-        }
+
         public String ProxyOut_write()
         {
             string action_name;
             ArrayList converted_simple_params;
-            ProcessActionParams(out action_name, out converted_simple_params);
-            FilterTrappedParams(converted_simple_params: converted_simple_params);
+
 
             StringWriter sw = new StringWriter();
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            sw.WriteLine($"def {this.proxy_out_func_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
-            ProcessActionParams(out action_name, out converted_simple_params);
-            sw.WriteLine($"    api_name = \"{this.proxy_in_func_prefix}{action_name}\"");
+            //sw.WriteLine($"def {this.proxy_out_func_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
+
+            //sw.WriteLine($"    api_name = \"{this.proxy_in_func_prefix}{action_name}\"");
             if (this.is_cmd)
             {
                 if (this.cmd_string.EndsWith(value: "'{}'"))
@@ -163,7 +97,7 @@ namespace ACG
                         }
                     }
                     sw.WriteLine("    cmd_dict = {");
-                    for (int index = 0; index < converted_simple_params.Count; index++)
+                    for (int index = 0; index < 2; index++)
                     {
                         String param_key = (String)this.simple_params[index];
                         if (param_key.Equals(this.time_dict_key))
@@ -178,7 +112,7 @@ namespace ACG
                             }
                             else
                             {
-                                sw.WriteLine($"        \"{param_key}\": {converted_simple_params[index]},");
+                                //sw.WriteLine($"        \"{param_key}\": {converted_simple_params[index]},");
                             }
                         }
                     }
@@ -202,7 +136,7 @@ namespace ACG
             {
                 sw.WriteLine($"    url = \"{this.proxy_out_api_url}\"");
                 sw.WriteLine("    data = {");
-                for (int index = 0; index < converted_simple_params.Count; index++)
+                for (int index = 0; index < 2; index++)
                 {
                     String param_key = (String)this.simple_params[index];
                     String value;
@@ -212,9 +146,9 @@ namespace ACG
                     }
                     else
                     {
-                        value = (String)converted_simple_params[index];
+                        value = "";
                     }
-                    if (index == converted_simple_params.Count - 1)
+                    if (index == 1)
                     {
                         sw.WriteLine($"        \"{param_key}\": {value}");
                     }
@@ -247,26 +181,25 @@ namespace ACG
         {
             string action_name;
             ArrayList converted_simple_params;
-            ProcessActionParams(out action_name, out converted_simple_params);
-            FilterTrappedParams(converted_simple_params: converted_simple_params);
+
 
             StringWriter sw = new StringWriter();
-            sw.WriteLine($"from {this.proxy_out_func_path} import {this.proxy_out_func_prefix}{action_name}");
+            //sw.WriteLine($"from {this.proxy_out_func_path} import {this.proxy_out_func_prefix}{action_name}");
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            sw.WriteLine($"def {this.proxy_in_func_prefix}{action_name}(request):");
+            //sw.WriteLine($"def {this.proxy_in_func_prefix}{action_name}(request):");
             sw.WriteLine("    if request.method != \"POST\":");
             sw.WriteLine("        return HttpResponse(status=501)");
             sw.WriteLine("    req_body = json.loads(request.body)");
-            for (int index = 0; index < converted_simple_params.Count; index++)
+            for (int index = 0; index < 2; index++)
             {
-                sw.WriteLine($"    {converted_simple_params[index]} = req_body[\"{converted_simple_params[index]}\"]");
+                //sw.WriteLine($"    {converted_simple_params[index]} = req_body[\"{converted_simple_params[index]}\"]");
             }
-            sw.WriteLine($"    res = {this.proxy_out_func_prefix}{action_name}(");
+            //sw.WriteLine($"    res = {this.proxy_out_func_prefix}{action_name}(");
 
-            for (int index = 0; index < converted_simple_params.Count; index++)
+            for (int index = 0; index < 2; index++)
             {
                 String param_key = (String)this.simple_params[index];
-                sw.WriteLine($"        {converted_simple_params[index]}={converted_simple_params[index]},");
+                //sw.WriteLine($"        {converted_simple_params[index]}={converted_simple_params[index]},");
             }
             sw.WriteLine("    )");
             sw.WriteLine("    return response(res)");
@@ -276,38 +209,35 @@ namespace ACG
         {
             string action_name;
             ArrayList converted_simple_params;
-            ProcessActionParams(out action_name, out converted_simple_params);
+
 
             StringWriter sw = new StringWriter();
             sw.WriteLine($"from . import {this.proxy_in_func_file}");
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            sw.WriteLine($"urlpatterns.append(path(\"{this.proxy_url_prefix}{action_name}\", {this.proxy_in_func_file}.{this.proxy_in_func_prefix}{action_name}))");
+            //sw.WriteLine($"urlpatterns.append(path(\"{this.proxy_url_prefix}{action_name}\", {this.proxy_in_func_file}.{this.proxy_in_func_prefix}{action_name}))");
             return sw.ToString();
         }
         public String RFKeyword_write()
         {
             string action_name;
             ArrayList converted_simple_params;
-            ProcessActionParams(out action_name, out converted_simple_params);
-            FilterTrappedParams(converted_simple_params: converted_simple_params);
-
             StringWriter sw = new StringWriter();
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            sw.WriteLine($"def {this.rfkw_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
+            //sw.WriteLine($"def {this.rfkw_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
             sw.WriteLine("    data = {");
-            for (int index = 0; index < converted_simple_params.Count; index++)
+            for (int index = 0; index < 2; index++)
             {
-                if (index == converted_simple_params.Count - 1)
+                if (index == 1)
                 {
-                    sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]}");
+                    //sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]}");
                 }
                 else
                 {
-                    sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]},");
+                    //sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]},");
                 }
             }
             sw.WriteLine("    }");
-            sw.WriteLine($"    req = requests.post(TEST_SERVER + \"/api/{this.proxy_url_prefix}{action_name}\", data=json.dumps(data))");
+            //sw.WriteLine($"    req = requests.post(TEST_SERVER + \"/api/{this.proxy_url_prefix}{action_name}\", data=json.dumps(data))");
             sw.WriteLine("    req.close()");
             sw.WriteLine("    req_data = json.loads(req.content)");
             if (this.is_cmd)
@@ -328,4 +258,77 @@ namespace ACG
 
 
     }
+
+    public class JsonWriter
+    {
+        public bool has_timetable;
+        public bool has_timestamp;
+        public String p_dict_name;
+        public ArrayList params_list;
+        public String[] converted_params;
+        public static String ParseCamel(String camel_string)
+        {
+            String underscoreLowercase = Regex.Replace(camel_string, @"([A-Z])", "_$1").ToLower();
+            return underscoreLowercase;
+        }
+        public JsonWriter(String p_dict_name, String[] tt_names, String ts_name)
+        {
+            this.params_list = new ArrayList();
+            this.p_dict_name = p_dict_name;
+            string json = File.ReadAllText(path: "../../proxy_out.json");
+            this.has_timestamp = json.Contains(value: "\"#TS\"");
+            this.has_timetable = json.Contains(value: "\"#TD\"");
+            this.converted_params = json.Split(separator: "\r\n".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < this.converted_params.Length; i++)
+            {
+                if (i == 0)
+                {
+                    this.converted_params[i] = this.converted_params[i].Replace("{", p_dict_name + " = {");
+                }
+                else if (this.converted_params[i].Contains(":"))
+                {
+                    String param_pair = this.converted_params[i].Replace(" ", "");
+                    String key = param_pair.Split(separator: "\":\"".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries)[0];
+                    String val = param_pair.Split(separator: "\":\"".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries)[1];
+                    switch (val)
+                    {
+                        case "#VAR":
+                            key = JsonWriter.ParseCamel(key);
+                            int dup_key = -1;
+                            while (this.params_list.Contains(key))
+                            {
+                                dup_key += 1;
+                                if (dup_key > 0)
+                                {
+                                    key = key.Substring(startIndex: 0, length: key.Length - 1);
+                                }
+                                key = key + dup_key.ToString();
+                            }
+                            this.params_list.Add(key);
+                            this.converted_params[i] = this.converted_params[i].Replace("\"#VAR\"", key);
+                            break;
+                        case "#TD":
+                            this.converted_params[i] = this.converted_params[i].Replace("\"#TD\"", tt_names[0]);
+                            for (int j = 1; j < tt_names.Length; j++)
+                            {
+                                if (!this.params_list.Contains(tt_names[j]))
+                                {
+                                    this.params_list.Add(tt_names[j]);
+                                }
+                            }
+                            break;
+                        case "#TS":
+                            this.converted_params[i] = this.converted_params[i].Replace("\"#TS\"", ts_name);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                Console.WriteLine(this.converted_params[i]);
+            }
+        }
+
+
+    }
+
 }

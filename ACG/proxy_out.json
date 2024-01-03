@@ -5,6 +5,16 @@
       "macaddr": "#VAR",
       "proto": "dhcp",
       "mtu": "1500"
+    },
+    {
+      "macaddr": "#VAR",
+      "proto": "dhcp",
+      "mtu": "1500"
+    },
+    {
+      "macaddr": "#VAR",
+      "proto": "dhcp",
+      "mtu": "1500"
     }
   ],
   "lanNum": "1",
@@ -15,7 +25,7 @@
       "netmask": "#VAR",
       "vlanid": "233",
       "ignore": "#VAR",
-      "leasetime": "#VAR",
+      "leasetime": "#TD",
       "limit": "#VAR",
       "conflict": "#VAR",
       "macaddr": "#VAR",
