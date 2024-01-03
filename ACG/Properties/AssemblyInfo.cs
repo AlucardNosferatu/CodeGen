@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("ACG")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Ruijie家用产品测试开发工具")]
+[assembly: AssemblyDescription("Ruijie自用")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ACG")]
-[assembly: AssemblyCopyright("Copyright ©  2024")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("Ruijie Network")]
+[assembly: AssemblyProduct("Ruijie ACG")]
+[assembly: AssemblyCopyright("Ruijie Network Copyright ©  2024")]
+[assembly: AssemblyTrademark("Ruijie Network")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 会使此程序集中的类型

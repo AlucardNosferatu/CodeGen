@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
 
 namespace ACG
@@ -32,12 +33,13 @@ namespace ACG
             string_dict[key: "proxy_in_func_file"] = pin_file_tbox.Text;
             string_dict[key: "proxy_url_prefix"] = pin_url_tbox.Text;
             string_dict[key: "specified_action_name"] = sp_an_tbox.Text;
-            string_dict[key: "cmd_string"] = cmd_str_label.Text;
+            string_dict[key: "cmd_string"] = cmd_str_tbox.Text;
             bool_dict[key: "has_end_morning"] = has_em_cbox.Checked;
             bool_dict[key: "is_cmd"] = is_cmd_cbox.Checked;
             bool_dict[key: "get_cmd_result"] = get_result_cbox.Checked;
             this.cg = new CodeGen(json_string: json_string, string_dict: string_dict, bool_dict: bool_dict);
             this.ok = true;
+            outputBox.Text = "Json解析完成";
         }
 
         private void genProxyOut_Click(object sender, EventArgs e)
@@ -90,6 +92,11 @@ namespace ACG
             {
                 outputBox.Text = "还没解析Json";
             }
+        }
+        private void jsonExample_Click(object sender, EventArgs e)
+        {
+            string json_string = File.ReadAllText("example.json");
+            jsonInputBox.Text = json_string;
         }
     }
 }

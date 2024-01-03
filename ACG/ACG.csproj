@@ -80,7 +80,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="proxy_out.json" />
+    <None Include="example.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -49,6 +49,7 @@
             this.pin_url_label = new System.Windows.Forms.Label();
             this.pin_url_tbox = new System.Windows.Forms.TextBox();
             this.outputBox = new System.Windows.Forms.RichTextBox();
+            this.jsonExample = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // jsonInputBox
@@ -251,11 +252,22 @@
             this.outputBox.Text = "输出结果";
             this.outputBox.WordWrap = false;
             // 
+            // jsonExample
+            // 
+            this.jsonExample.Location = new System.Drawing.Point(672, 71);
+            this.jsonExample.Name = "jsonExample";
+            this.jsonExample.Size = new System.Drawing.Size(116, 52);
+            this.jsonExample.TabIndex = 22;
+            this.jsonExample.Text = "Json文本范例";
+            this.jsonExample.UseVisualStyleBackColor = true;
+            this.jsonExample.Click += new System.EventHandler(this.jsonExample_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.jsonExample);
             this.Controls.Add(this.outputBox);
             this.Controls.Add(this.pin_url_tbox);
             this.Controls.Add(this.pin_url_label);
@@ -309,6 +321,7 @@
         private System.Windows.Forms.Label pin_url_label;
         private System.Windows.Forms.TextBox pin_url_tbox;
         private System.Windows.Forms.RichTextBox outputBox;
+        private System.Windows.Forms.Button jsonExample;
     }
 }
 
