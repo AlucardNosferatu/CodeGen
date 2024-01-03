@@ -2,17 +2,17 @@
   "wanNum": "1",
   "wan": [
     {
-      "macaddr": "#VAR",
+      "macaddr": "#VAR_UNI",
       "proto": "dhcp",
       "mtu": "1500"
     },
     {
-      "macaddr": "#VAR",
+      "macaddr": "#VAR_UNI",
       "proto": "dhcp",
       "mtu": "1500"
     },
     {
-      "macaddr": "#VAR",
+      "macaddr": "#VAR_UNI",
       "proto": "dhcp",
       "mtu": "1500"
     }
@@ -21,16 +21,29 @@
   "lan": [
     {
       "proto": "static",
-      "ipaddr": "#VAR",
-      "netmask": "#VAR",
+      "ipaddr": "#VAR_COM",
+      "netmask": "#VAR_COM",
       "vlanid": "233",
-      "ignore": "#VAR",
+      "ignore": "#VAR_COM",
       "leasetime": "#TD",
-      "limit": "#VAR",
-      "conflict": "#VAR",
-      "macaddr": "#VAR",
-      "ipstart": "#VAR",
-      "lastaddr": "#VAR"
+      "limit": "#VAR_COM",
+      "conflict": "#VAR_COM",
+      "macaddr": "#VAR_COM",
+      "ipstart": "#VAR_COM",
+      "lastaddr": "#VAR_COM"
+    },
+    {
+      "proto": "static",
+      "ipaddr": "#VAR_COM",
+      "netmask": "#VAR_COM",
+      "vlanid": "233",
+      "ignore": "#VAR_COM",
+      "leasetime": "#TD",
+      "limit": "#VAR_COM",
+      "conflict": "#VAR_COM",
+      "macaddr": "#VAR_COM",
+      "ipstart": "#VAR_COM",
+      "lastaddr": "#VAR_COM"
     }
   ],
   "version": "1.0.0",

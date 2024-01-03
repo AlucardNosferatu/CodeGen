@@ -1,129 +1,141 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-
-
 namespace ACG
 {
     internal class CodeGen
     {
-        public ArrayList simple_params = new ArrayList();
-        public Dictionary<String, String> fixed_params = new Dictionary<String, String>();
+        //固定参数
         public String proxy_out_func_prefix = "homewlan_";
         public String rfkw_prefix = "rfkw_v2_";
         public String proxy_in_func_prefix = "app_v2_";
-
-        public String proxy_out_api_url = "homewlan/sta/setStaRemark2";
-        public String proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
-        public String proxy_in_func_file = "frontpage";
-        public String proxy_url_prefix = "functions/v2/frontpage/";
-
-        public bool is_cmd = false;
-        public String cmd_string = "ac_config set -m timeReboot '{}'";
+        public String cmd_inner_dict_var = "cmd_dict";
+        public String plain_req_dict_var = "data";
+        public String timestamp_var = "timestamp";
+        public String timetable_var = "timetable";
+        public String timetable_ed_var = "enable_days";
+        public String timetable_sn_var = "start";
+        public String timetable_em_var = "end";
+        //对象初始化入参
+        public String proxy_out_api_url = "";
+        public String proxy_out_func_path = "";
+        public String proxy_in_func_file = "";
+        public String proxy_url_prefix = "";
+        public String cmd_string = "";
         public String specified_action_name = "";
-        public bool need_timestamp = true;
-        public bool has_time_dict = true;
-        public String time_dict_key = "time";
-        public String time_dict_ed_key = "enable_days";
-        public String time_dict_sn_key = "start_night";
-        public String time_dict_em_key = "end_morning";
         public bool has_end_morning = true;
         public bool get_cmd_result = true;
-
-
-
-        public CodeGen()
+        public bool is_cmd = false;
+        //自动生成参数
+        public bool has_timestamp = true;
+        public bool has_timetable = true;
+        public String action_name = "";
+        public String[] tt_names;
+        public JsonWriter json_writer;
+        public ArrayList py_params;
+        private String ExtractActionParams()
         {
-            if (!this.is_cmd)
+            String action_name;
+            if (this.specified_action_name.Length > 0)
             {
-                this.need_timestamp = false;
-                this.has_time_dict = false;
-                this.has_end_morning = false;
-                this.get_cmd_result = false;
+                action_name = this.specified_action_name;
             }
+            else
+            {
+                if (this.is_cmd)
+                {
+                    String[] cmd_as_list = this.cmd_string.Replace(oldValue: " '{}'", "").Replace(oldValue: "-m ", "").Split(separator: ' ');
+                    action_name = cmd_as_list[cmd_as_list.Length - 2] + "_" + cmd_as_list[cmd_as_list.Length - 1];
+                }
+                else
+                {
+                    String[] proxy_out_api_url_splited = this.proxy_out_api_url.Split('/');
+                    action_name = proxy_out_api_url_splited[proxy_out_api_url_splited.Length - 1];
+                }
+                action_name = JsonWriter.ParseCamel(camel_string: action_name);
+            }
+            return action_name;
+        }
+        public CodeGen(String json_string)
+        {
             this.proxy_out_api_url = "homewlan/sta/setStaRemark2";
             this.proxy_out_func_path = "utils.api.app_v2.functions.frontpage.set_alias";
             this.proxy_in_func_file = "frontpage";
             this.proxy_url_prefix = "functions/v2/frontpage/";
-            this.simple_params.Add(value: "remark");
-            this.simple_params.Add(value: "staMac");
-            this.simple_params.Add(value: "projectId");
-
-            //this.simple_params.Add(value: "version");
-            //this.simple_params.Add(value: "groupId");
-            //this.simple_params.Add(value: "type");
-            //this.simple_params.Add(value: "time");
-            //this.simple_params.Add(value: "enable");
-            //this.simple_params.Add(value: "tmngtName");
-            //this.simple_params.Add(value: "networkId");
-            //this.simple_params.Add(value: "subConfigId");
-            //this.fixed_params.Add(key: "version", value: "\"1.0.0\"");
-            //this.fixed_params.Add(key: "groupId", value: "\"0\"");
-            //this.fixed_params.Add(key: "type", value: "\"reboot\"");
-            //this.fixed_params.Add(key: "tmngtName", value: "\"sys_reboot\"");
+            this.specified_action_name = "";
+            this.has_end_morning = true;
+            this.is_cmd = true;
+            this.cmd_string = "ac_config set -m timeReboot '{}'";
+            this.get_cmd_result = true;
+            this.get_cmd_result = this.get_cmd_result && this.is_cmd;
+            String p_dict_name = "";
+            if (this.is_cmd)
+            {
+                p_dict_name = this.cmd_inner_dict_var;
+            }
+            else
+            {
+                p_dict_name = this.plain_req_dict_var;
+            }
+            this.action_name = this.ExtractActionParams();
+            if (this.has_end_morning)
+            {
+                this.tt_names = new string[] { this.timetable_var, this.timetable_ed_var, this.timetable_sn_var, this.timetable_em_var };
+            }
+            else
+            {
+                this.tt_names = new string[] { this.timetable_var, this.timetable_ed_var, this.timetable_sn_var };
+            }
+            this.json_writer = new JsonWriter(json_string: json_string, p_dict_name: p_dict_name, tt_names: this.tt_names, ts_name: this.timestamp_var);
+            this.has_timetable = this.json_writer.has_timetable;
+            this.has_timestamp = this.json_writer.has_timestamp;
+            this.py_params = new ArrayList();
         }
-
-
         public String ProxyOut_write()
         {
-            string action_name;
-            ArrayList converted_simple_params;
-
-
             StringWriter sw = new StringWriter();
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            //sw.WriteLine($"def {this.proxy_out_func_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
-
-            //sw.WriteLine($"    api_name = \"{this.proxy_in_func_prefix}{action_name}\"");
+            ArrayList input_params = (ArrayList)this.json_writer.params_list.Clone();
+            if (this.is_cmd)
+            {
+                if (!input_params.Contains("project_id"))
+                {
+                    input_params.Add(value: "project_id");
+                }
+                if (!input_params.Contains("sn"))
+                {
+                    input_params.Add(value: "sn");
+                }
+            }
+            this.py_params = input_params;
+            String input_params_string = String.Join(", ", input_params.ToArray());
+            sw.WriteLine($"def {this.proxy_out_func_prefix}{this.action_name}({input_params_string}):");
+            sw.WriteLine($"    api_name = \"{this.proxy_in_func_prefix}{this.action_name}\"");
+            if (this.has_timestamp)
+            {
+                sw.WriteLine($"    {this.timestamp_var} = str(int(time.time()))");
+            }
+            if (this.has_timetable)
+            {
+                if (this.has_end_morning)
+                {
+                    sw.WriteLine($"    {this.timetable_var} = compose_time_dict(e_days={this.timetable_ed_var}, sn={this.timetable_sn_var}, em={this.timetable_em_var})");
+                }
+                else
+                {
+                    sw.WriteLine($"    {this.timetable_var} = compose_time_dict(e_days={this.timetable_ed_var}, sn={this.timetable_sn_var})");
+                }
+            }
             if (this.is_cmd)
             {
                 if (this.cmd_string.EndsWith(value: "'{}'"))
                 {
-                    if (this.need_timestamp)
+                    foreach (String line in this.json_writer.converted_params)
                     {
-                        sw.WriteLine("    timestamp = str(int(time.time()))");
+                        sw.WriteLine("    " + line);
                     }
-                    if (this.has_time_dict)
-                    {
-                        if (this.has_end_morning)
-                        {
-                            sw.WriteLine($"    time_dict = compose_time_dict(e_days={this.time_dict_ed_key}, sn={this.time_dict_sn_key}, em={this.time_dict_em_key})");
-                        }
-                        else
-                        {
-                            sw.WriteLine($"    time_dict = compose_time_dict(e_days={this.time_dict_ed_key}, sn={this.time_dict_sn_key})");
-                        }
-                    }
-                    sw.WriteLine("    cmd_dict = {");
-                    for (int index = 0; index < 2; index++)
-                    {
-                        String param_key = (String)this.simple_params[index];
-                        if (param_key.Equals(this.time_dict_key))
-                        {
-                            sw.WriteLine($"        \"{param_key}\": time_dict,");
-                        }
-                        else
-                        {
-                            if (this.fixed_params.ContainsKey(key: param_key))
-                            {
-                                sw.WriteLine($"        \"{param_key}\": {this.fixed_params[param_key]},");
-                            }
-                            else
-                            {
-                                //sw.WriteLine($"        \"{param_key}\": {converted_simple_params[index]},");
-                            }
-                        }
-                    }
-                    if (this.need_timestamp)
-                    {
-                        sw.WriteLine("        'configTime': timestamp,");
-                        sw.WriteLine("        'currentTime': timestamp,");
-                        sw.WriteLine("        'configId': timestamp");
-                    }
-                    sw.WriteLine("    }");
-                    sw.WriteLine("    cmd_str = json.dumps(obj=cmd_dict)");
+                    sw.WriteLine($"    cmd_str = json.dumps(obj={this.cmd_inner_dict_var})");
                     sw.WriteLine($"    cmd = \"{this.cmd_string}\".format(cmd_str)");
                 }
                 else
@@ -135,29 +147,10 @@ namespace ACG
             else
             {
                 sw.WriteLine($"    url = \"{this.proxy_out_api_url}\"");
-                sw.WriteLine("    data = {");
-                for (int index = 0; index < 2; index++)
+                foreach (String line in this.json_writer.converted_params)
                 {
-                    String param_key = (String)this.simple_params[index];
-                    String value;
-                    if (this.fixed_params.ContainsKey(key: param_key))
-                    {
-                        value = this.fixed_params[param_key];
-                    }
-                    else
-                    {
-                        value = "";
-                    }
-                    if (index == 1)
-                    {
-                        sw.WriteLine($"        \"{param_key}\": {value}");
-                    }
-                    else
-                    {
-                        sw.WriteLine($"        \"{param_key}\": {value},");
-                    }
+                    sw.WriteLine("    " + line);
                 }
-                sw.WriteLine("    }");
                 sw.WriteLine("    try:");
                 sw.WriteLine("        # noinspection PyUnresolvedReferences");
                 sw.WriteLine("        ac = AuthInfoV2.objects.get(active=True)");
@@ -174,32 +167,23 @@ namespace ACG
             }
             return sw.ToString();
         }
-
-
-
         public String ProxyIn_write()
         {
-            string action_name;
-            ArrayList converted_simple_params;
-
-
             StringWriter sw = new StringWriter();
-            //sw.WriteLine($"from {this.proxy_out_func_path} import {this.proxy_out_func_prefix}{action_name}");
+            sw.WriteLine($"from {this.proxy_out_func_path} import {this.proxy_out_func_prefix}{this.action_name}");
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            //sw.WriteLine($"def {this.proxy_in_func_prefix}{action_name}(request):");
+            sw.WriteLine($"def {this.proxy_in_func_prefix}{this.action_name}(request):");
             sw.WriteLine("    if request.method != \"POST\":");
             sw.WriteLine("        return HttpResponse(status=501)");
             sw.WriteLine("    req_body = json.loads(request.body)");
-            for (int index = 0; index < 2; index++)
+            for (int index = 0; index < this.py_params.Count; index++)
             {
-                //sw.WriteLine($"    {converted_simple_params[index]} = req_body[\"{converted_simple_params[index]}\"]");
+                sw.WriteLine($"    {this.py_params[index]} = req_body[\"{this.py_params[index]}\"]");
             }
-            //sw.WriteLine($"    res = {this.proxy_out_func_prefix}{action_name}(");
-
-            for (int index = 0; index < 2; index++)
+            sw.WriteLine($"    res = {this.proxy_out_func_prefix}{this.action_name}(");
+            for (int index = 0; index < this.py_params.Count; index++)
             {
-                String param_key = (String)this.simple_params[index];
-                //sw.WriteLine($"        {converted_simple_params[index]}={converted_simple_params[index]},");
+                sw.WriteLine($"        {this.py_params[index]}={this.py_params[index]},");
             }
             sw.WriteLine("    )");
             sw.WriteLine("    return response(res)");
@@ -207,37 +191,32 @@ namespace ACG
         }
         public String ProxyUrl_write()
         {
-            string action_name;
-            ArrayList converted_simple_params;
-
-
             StringWriter sw = new StringWriter();
             sw.WriteLine($"from . import {this.proxy_in_func_file}");
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            //sw.WriteLine($"urlpatterns.append(path(\"{this.proxy_url_prefix}{action_name}\", {this.proxy_in_func_file}.{this.proxy_in_func_prefix}{action_name}))");
+            sw.WriteLine($"urlpatterns.append(path(\"{this.proxy_url_prefix}{this.action_name}\", {this.proxy_in_func_file}.{this.proxy_in_func_prefix}{this.action_name}))");
             return sw.ToString();
         }
         public String RFKeyword_write()
         {
-            string action_name;
-            ArrayList converted_simple_params;
             StringWriter sw = new StringWriter();
             sw.WriteLine("# 此标记表明该代码由TOOL生成");
-            //sw.WriteLine($"def {this.rfkw_prefix}{action_name}({String.Join(", ", converted_simple_params.ToArray())}):");
+            String input_params_string = String.Join(", ", this.py_params.ToArray());
+            sw.WriteLine($"def {this.rfkw_prefix}{this.action_name}({input_params_string}):");
             sw.WriteLine("    data = {");
-            for (int index = 0; index < 2; index++)
+            for (int index = 0; index < this.py_params.Count; index++)
             {
-                if (index == 1)
+                if (index == this.py_params.Count - 1)
                 {
-                    //sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]}");
+                    sw.WriteLine($"        \"{this.py_params[index]}\": {this.py_params[index]}");
                 }
                 else
                 {
-                    //sw.WriteLine($"        \"{converted_simple_params[index]}\": {converted_simple_params[index]},");
+                    sw.WriteLine($"        \"{this.py_params[index]}\": {this.py_params[index]},");
                 }
             }
             sw.WriteLine("    }");
-            //sw.WriteLine($"    req = requests.post(TEST_SERVER + \"/api/{this.proxy_url_prefix}{action_name}\", data=json.dumps(data))");
+            sw.WriteLine($"    req = requests.post(TEST_SERVER + \"/api/{this.proxy_url_prefix}{this.action_name}\", data=json.dumps(data))");
             sw.WriteLine("    req.close()");
             sw.WriteLine("    req_data = json.loads(req.content)");
             if (this.is_cmd)
@@ -255,30 +234,26 @@ namespace ACG
             sw.WriteLine("    return req_data[\"data\"]");
             return sw.ToString();
         }
-
-
     }
-
     public class JsonWriter
     {
         public bool has_timetable;
         public bool has_timestamp;
         public String p_dict_name;
-        public ArrayList params_list;
         public String[] converted_params;
+        public ArrayList params_list;
         public static String ParseCamel(String camel_string)
         {
             String underscoreLowercase = Regex.Replace(camel_string, @"([A-Z])", "_$1").ToLower();
             return underscoreLowercase;
         }
-        public JsonWriter(String p_dict_name, String[] tt_names, String ts_name)
+        public JsonWriter(String json_string, String p_dict_name, String[] tt_names, String ts_name)
         {
             this.params_list = new ArrayList();
             this.p_dict_name = p_dict_name;
-            string json = File.ReadAllText(path: "../../proxy_out.json");
-            this.has_timestamp = json.Contains(value: "\"#TS\"");
-            this.has_timetable = json.Contains(value: "\"#TD\"");
-            this.converted_params = json.Split(separator: "\r\n".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries);
+            this.has_timestamp = json_string.Contains(value: "\"#TS\"");
+            this.has_timetable = json_string.Contains(value: "\"#TD\"");
+            this.converted_params = json_string.Split(separator: "\r\n".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < this.converted_params.Length; i++)
             {
                 if (i == 0)
@@ -292,7 +267,15 @@ namespace ACG
                     String val = param_pair.Split(separator: "\":\"".ToCharArray(), options: StringSplitOptions.RemoveEmptyEntries)[1];
                     switch (val)
                     {
-                        case "#VAR":
+                        case "#VAR_COM":
+                            key = JsonWriter.ParseCamel(key);
+                            if (!this.params_list.Contains(key))
+                            {
+                                this.params_list.Add(key);
+                            }
+                            this.converted_params[i] = this.converted_params[i].Replace("\"#VAR_COM\"", key);
+                            break;
+                        case "#VAR_UNI":
                             key = JsonWriter.ParseCamel(key);
                             int dup_key = -1;
                             while (this.params_list.Contains(key))
@@ -305,7 +288,7 @@ namespace ACG
                                 key = key + dup_key.ToString();
                             }
                             this.params_list.Add(key);
-                            this.converted_params[i] = this.converted_params[i].Replace("\"#VAR\"", key);
+                            this.converted_params[i] = this.converted_params[i].Replace("\"#VAR_UNI\"", key);
                             break;
                         case "#TD":
                             this.converted_params[i] = this.converted_params[i].Replace("\"#TD\"", tt_names[0]);
@@ -327,8 +310,5 @@ namespace ACG
                 Console.WriteLine(this.converted_params[i]);
             }
         }
-
-
     }
-
 }
